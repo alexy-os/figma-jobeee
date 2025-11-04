@@ -1,1 +1,11 @@
-# repo-template
+
+  # Jobeee
+
+  This is a code bundle for Jobeee. The original project is available at https://www.figma.com/design/CTPu0ORuhaxmj885bzJJXz/Jobeee.
+
+  ## Running the code
+
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
+  
