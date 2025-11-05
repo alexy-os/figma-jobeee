@@ -26,7 +26,7 @@ import { toast, Toaster } from "sonner@2.0.3";
 import type { ImperativePanelHandle } from "react-resizable-panels@2.1.7";
 
 export default function App() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [rightPanelSize, setRightPanelSize] = useState(35);
   const [stories, setStories] = useState<any[]>([]);
@@ -34,6 +34,15 @@ export default function App() {
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
+
+  // Calculate scale based on right panel size
+  const getScale = () => {
+    if (rightPanelSize > 40) return 'small'; // 75%
+    if (rightPanelSize > 35) return 'medium'; // 90%
+    return 'large'; // 100%
+  };
+
+  const scale = getScale();
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
   const feedRef = useRef<ImperativePanelHandle>(null);
@@ -97,29 +106,36 @@ export default function App() {
     }
   };
 
+  // Scale-based classes
+  const paddingClass = scale === 'small' ? 'p-2 md:p-4' : scale === 'medium' ? 'p-3 md:p-6' : 'p-4 md:p-8';
+  const spacingClass = scale === 'small' ? 'space-y-2 md:space-y-3' : scale === 'medium' ? 'space-y-3 md:space-y-4' : 'space-y-4 md:space-y-6';
+  const headerSpacingClass = scale === 'small' ? 'mb-3 md:mb-4' : scale === 'medium' ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8';
+  const storyGapClass = scale === 'small' ? 'gap-1.5 md:gap-2' : scale === 'medium' ? 'gap-2 md:gap-2.5' : 'gap-2 md:gap-3';
+  const storySizeClass = scale === 'small' ? 'w-8 h-8 md:w-10 md:h-10' : scale === 'medium' ? 'w-9 h-9 md:w-11 md:h-11' : 'w-10 h-10 md:w-12 md:h-12';
+
   const feedContent = (
-    <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
-        <div className="mb-6 md:mb-8">
+    <div className={`h-full overflow-y-auto bg-slate-50 dark:bg-slate-950 ${paddingClass}`}>
+      <div className={`max-w-3xl mx-auto ${spacingClass}`}>
+        <div className={headerSpacingClass}>
           {!isMobile && (
             <h1 className="text-slate-800 dark:text-slate-100 mb-4">
               Job<span className="text-orange-500">eee</span>
             </h1>
           )}
           {/* Stories */}
-          <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2">
+          <div className={`flex ${storyGapClass} overflow-x-auto pb-2`}>
             {loading ? (
               [...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-300 dark:border-slate-600 animate-pulse flex-shrink-0"
+                  className={`${storySizeClass} rounded-full bg-slate-300 dark:border-slate-600 animate-pulse flex-shrink-0`}
                 ></div>
               ))
             ) : (
               stories.map((story) => (
                 <div
                   key={story.id}
-                  className="relative w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-orange-500 flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                  className={`relative ${storySizeClass} rounded-full border-2 border-orange-500 flex-shrink-0 cursor-pointer hover:scale-110 transition-transform`}
                   title={story.user?.name}
                 >
                   <img
@@ -136,7 +152,7 @@ export default function App() {
         {/* Feed Items */}
         {loading ? (
           [...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 md:p-6 animate-pulse">
+            <div key={i} className={`bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg ${scale === 'small' ? 'p-2 md:p-3' : scale === 'medium' ? 'p-3 md:p-4' : 'p-4 md:p-6'} animate-pulse`}>
               <div className="h-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
             </div>
           ))
@@ -152,6 +168,7 @@ export default function App() {
               company={item.data.company}
               likeCount={item.data.likeCount}
               commentCount={item.data.commentCount}
+              scale={scale}
               onCardClick={() => {
                 if (item.type === 'thread') {
                   setSelectedThread(item.id);
@@ -223,14 +240,24 @@ export default function App() {
       <Toaster position="top-center" />
       <div className="h-screen overflow-hidden">
       <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel
+          ref={sidebarRef}
+          defaultSize={5}
+          minSize={5}
+          maxSize={20}
+          collapsible={true}
+        >
           <Sidebar
             isCollapsed={sidebarCollapsed}
             onToggleCollapse={handleToggleCollapse}
           />
+        </ResizablePanel>
+
+        <ResizableHandle />
 
         <ResizablePanel
           ref={feedRef}
-          defaultSize={50}
+          defaultSize={60}
           minSize={30}
         >
           {feedContent}
